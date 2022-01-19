@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:mynote/controllers/task_controller.dart';
+import 'package:mynote/model/task.dart';
 
 import 'package:mynote/ui/input_field.dart';
 import 'package:mynote/util/button.dart';
@@ -14,8 +16,10 @@ class AddTaskPage extends StatefulWidget {
 }
 
 class _AddTaskPageState extends State<AddTaskPage> {
-  TextEditingController _titleCtrl = TextEditingController();
-  TextEditingController _noteCtrl = TextEditingController();
+  //asigning value
+  final TaskController _taskController = Get.put(TaskController());
+  final TextEditingController _titleCtrl = TextEditingController();
+  final TextEditingController _noteCtrl = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   String endTime = "9:30 PM";
   String startTime = DateFormat("hh:mm a").format(DateTime.now());
@@ -25,6 +29,8 @@ class _AddTaskPageState extends State<AddTaskPage> {
   String _selectedRepeated = "None";
   final List<String> repeated = ["None", "Daily", "Weekly", "Monthly"];
   int _selectedColor = 0;
+
+  //mothod
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,8 +59,8 @@ class _AddTaskPageState extends State<AddTaskPage> {
                 title: "Date",
                 hint: DateFormat.yMd().format(_selectedDate),
                 widget: IconButton(
-                  onPressed: () {
-                    _dateFromUser();
+                  onPressed: () async {
+                    await _dateFromUser();
                   },
                   icon: const Icon(Icons.calendar_today_outlined),
                 ),
@@ -164,7 +170,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                   _colorPallete(),
                   MyButton(
                     label: "Create task",
-                    onTap: () => null,
+                    onTap: () => _validateDate(),
                   )
                 ],
               )
@@ -174,6 +180,55 @@ class _AddTaskPageState extends State<AddTaskPage> {
       ),
     );
   }
+
+  _validateDate() {
+    if (_titleCtrl.text.isNotEmpty && _noteCtrl.text.isNotEmpty) {
+      // add to DB
+      _addTaskToDb();
+      Navigator.pop(context);
+    } else if (_titleCtrl.text.isEmpty || _noteCtrl.text.isEmpty) {
+      debugPrint("GEt Snapbar Started");
+
+      // Get.snackbar("Required", "All field are required!",
+      //     snackPosition: SnackPosition.BOTTOM,
+      //     backgroundColor: Colors.white,
+      //     icon: const Icon(Icons.warning_amber_rounded),
+      //     colorText: Colors.red);
+
+// Find the ScaffoldMessenger in the widget tree
+// and use it to show a SnackBar.
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
+
+  var snackBar = SnackBar(
+    content: SizedBox(
+      height: 60,
+      child: Row(
+        children: [
+          const Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.red,
+          ),
+          Expanded(
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Text(
+                "Required",
+                style: TextStyle(color: Colors.red, fontSize: 20),
+              ),
+              Text(
+                "All field are required!",
+                style: TextStyle(color: Colors.red, fontSize: 16),
+              )
+            ],
+          ))
+        ],
+      ),
+    ),
+    backgroundColor: Colors.black.withOpacity(0.9),
+  );
 
   Column _colorPallete() {
     return Column(
@@ -244,9 +299,9 @@ class _AddTaskPageState extends State<AddTaskPage> {
   _dateFromUser() async {
     DateTime? _datePicker = await showDatePicker(
         context: context,
-        initialDate: DateTime.now(),
         firstDate: DateTime(2021),
-        lastDate: DateTime(2022));
+        initialDate: DateTime.now(),
+        lastDate: DateTime(2029));
     if (_datePicker != null) {
       setState(() {
         _selectedDate = _datePicker;
@@ -280,5 +335,21 @@ class _AddTaskPageState extends State<AddTaskPage> {
         initialTime: TimeOfDay(
             hour: int.parse(startTime.split(":")[0]),
             minute: int.parse(startTime.split(":")[1].split(" ")[0])));
+  }
+
+  void _addTaskToDb() async {
+    int value = await _taskController.addTask(
+        task: Task(
+            note: _noteCtrl.text,
+            title: _titleCtrl.text,
+            date: DateFormat.yMd().format(_selectedDate),
+            startTime: startTime,
+            endTime: endTime,
+            remind: _selectedRemind,
+            repeat: _selectedRepeated,
+            color: _selectedColor,
+            isCompleted: 0));
+    debugPrint(" Id is ==> $value");
+    _taskController.getTask();
   }
 }
