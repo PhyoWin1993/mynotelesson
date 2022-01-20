@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:mynote/controllers/task_controller.dart';
+import 'package:mynote/model/task.dart';
 import 'package:mynote/ui/add_task_page.dart';
 import 'package:mynote/ui/task_tile.dart';
 import 'package:mynote/util/button.dart';
@@ -155,7 +156,8 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            print("Tapped");
+                            showBottonSheet(
+                                context, _taskController.taskList[index]);
                           },
                           child: TaskTile(_taskController.taskList[index]),
                         )
@@ -165,5 +167,98 @@ class _HomePageState extends State<HomePage> {
                 ));
           });
     }));
+  }
+
+  _bottonSheetButton(
+      {required String label,
+      required Function()? ontap,
+      required Color clr,
+      bool isClose = false,
+      required BuildContext context}) {
+    return GestureDetector(
+      onTap: ontap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        height: 55,
+        width: MediaQuery.of(context).size.width * 0.9,
+        decoration: BoxDecoration(
+            color: isClose == true ? Colors.red : clr,
+            border:
+                Border.all(width: 2, color: isClose == true ? Colors.red : clr),
+            borderRadius: BorderRadius.circular(20)),
+        child: Center(
+          child: Text(
+            label,
+            style:
+                isClose ? titleStyle : titleStyle.copyWith(color: Colors.white),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void showBottonSheet(BuildContext context, Task task) {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return Container(
+            padding: const EdgeInsets.only(top: 4),
+            height: task.isCompleted == 1
+                ? MediaQuery.of(context).size.height * 0.24
+                : MediaQuery.of(context).size.height * 0.32,
+            color: Get.isDarkMode ? darkGreyClr : Colors.white,
+            child: Column(
+              children: [
+                Container(
+                  height: 6,
+                  width: 120,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color:
+                          Get.isDarkMode ? Colors.grey[600] : Colors.grey[300]),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+
+                // add first btn
+                task.isCompleted == 1
+                    ? Container()
+                    : _bottonSheetButton(
+                        label: "Task Completed",
+                        ontap: () {
+                          Navigator.of(context).pop();
+                        },
+                        clr: primaryClr,
+                        context: context),
+                // add sec btn
+
+                _bottonSheetButton(
+                    label: "Delete Task",
+                    ontap: () {
+                      Navigator.of(context).pop();
+                    },
+                    clr: Colors.red[300]!,
+                    context: context),
+                // add third btn
+                const SizedBox(
+                  height: 20,
+                ),
+
+                _bottonSheetButton(
+                    label: "Close",
+                    ontap: () {
+                      Navigator.of(context).pop();
+                    },
+                    clr: Colors.red[300]!,
+                    context: context,
+                    isClose: true),
+                const SizedBox(
+                  height: 10,
+                ),
+              ],
+            ),
+          );
+        });
   }
 }
