@@ -72,7 +72,9 @@ class _HomePageState extends State<HomePage> {
         ),
         onDateChange: (date) {
           //
-          selectedDate = date;
+          setState(() {
+            selectedDate = date;
+          });
         },
       ),
     );
@@ -148,23 +150,48 @@ class _HomePageState extends State<HomePage> {
       return ListView.builder(
           itemCount: _taskController.taskList.length,
           itemBuilder: (_, index) {
-            return AnimationConfiguration.staggeredList(
-                position: index,
-                child: SlideAnimation(
-                  child: FadeInAnimation(
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            showBottonSheet(
-                                context, _taskController.taskList[index]);
-                          },
-                          child: TaskTile(_taskController.taskList[index]),
-                        )
-                      ],
+            Task task = _taskController.taskList[index];
+
+            if (task.repeat == 'Daily') {
+              return AnimationConfiguration.staggeredList(
+                  position: index,
+                  child: SlideAnimation(
+                    child: FadeInAnimation(
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              showBottonSheet(context, task);
+                            },
+                            child: TaskTile(task),
+                          )
+                        ],
+                      ),
                     ),
-                  ),
-                ));
+                  ));
+            }
+// sec arg
+
+            if (task.date == DateFormat.yMd().format(selectedDate)) {
+              return AnimationConfiguration.staggeredList(
+                  position: index,
+                  child: SlideAnimation(
+                    child: FadeInAnimation(
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              showBottonSheet(context, task);
+                            },
+                            child: TaskTile(task),
+                          )
+                        ],
+                      ),
+                    ),
+                  ));
+            } else {
+              return Container();
+            }
           });
     }));
   }
