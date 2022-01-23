@@ -182,7 +182,7 @@ class _HomePageState extends State<HomePage> {
         height: 55,
         width: MediaQuery.of(context).size.width * 0.9,
         decoration: BoxDecoration(
-            color: isClose == true ? Colors.red : clr,
+            color: isClose == true ? Colors.transparent : clr,
             border:
                 Border.all(width: 2, color: isClose == true ? Colors.red : clr),
             borderRadius: BorderRadius.circular(20)),
@@ -222,20 +222,24 @@ class _HomePageState extends State<HomePage> {
                 ),
 
                 // add first btn
-                task.isCompleted == 1
-                    ? Container()
-                    : _bottonSheetButton(
-                        label: "Task Completed",
-                        ontap: () {
-                          Navigator.of(context).pop();
-                        },
-                        clr: primaryClr,
-                        context: context),
+                if (task.isCompleted == 1)
+                  Container()
+                else
+                  _bottonSheetButton(
+                      label: "Task Completed",
+                      ontap: () {
+                        _taskController.makeTaskCompleted(task.id!);
+                        Navigator.of(context).pop();
+                      },
+                      clr: primaryClr,
+                      context: context),
                 // add sec btn
 
                 _bottonSheetButton(
                     label: "Delete Task",
                     ontap: () {
+                      _taskController.delete(task);
+                      _taskController.getTask();
                       Navigator.of(context).pop();
                     },
                     clr: Colors.red[300]!,
